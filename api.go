@@ -47,5 +47,6 @@ type Client interface {
 	// of register in a remote device and returns FIFO value register.
 	ReadFIFOQueue(address uint16) (results []byte, err error)
 
+	Connect() (err error)
 	Close() (err error)
 }

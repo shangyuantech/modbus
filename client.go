@@ -432,10 +432,13 @@ func (mb *client) ReadFIFOQueue(address uint16) (results []byte, err error) {
 	return
 }
 
-func (mb *client) Close() (err error){
-	return mb.transporter.Close()
+func (mb *client) Connect() (err error) {
+	return mb.transporter.Connect()
 }
 
+func (mb *client) Close() (err error) {
+	return mb.transporter.Close()
+}
 
 // Helpers
 
