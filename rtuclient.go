@@ -111,22 +111,21 @@ type rtuSerialTransporter struct {
 }
 
 func (mb *rtuSerialTransporter) Send(aduRequest []byte) (aduResponse []byte, err error) {
-	fmt.Println("Start send")
+	mb.mu.Lock()
+	defer mb.mu.Unlock()
+
 	// Make sure port is connected
 	if err = mb.serialPort.connect(); err != nil {
 		return
 	}
-	fmt.Println("Connected")
 	// Start the timer to close when idle
 	mb.serialPort.lastActivity = time.Now()
 	mb.serialPort.startCloseTimer()
-	fmt.Println("Sending")
 	// Send the request
 	mb.serialPort.logf("modbus: sending % x\n", aduRequest)
 	if _, err = mb.port.Write(aduRequest); err != nil {
 		return
 	}
-	fmt.Println("Sended")
 	function := aduRequest[1]
 	functionFail := aduRequest[1] & 0x80
 	bytesToRead := calculateResponseLength(aduRequest)
@@ -135,11 +134,9 @@ func (mb *rtuSerialTransporter) Send(aduRequest []byte) (aduResponse []byte, err
 	var n int
 	var n1 int
 	var data [rtuMaxSize]byte
-	fmt.Println("beging read")
 	//We first read the minimum length and then read either the full package
 	//or the error package, depending on the error status (byte 2 of the response)
 	n, err = io.ReadAtLeast(mb.port, data[:], rtuMinSize)
-	fmt.Println("Read")
 	if err != nil {
 		return
 	}
