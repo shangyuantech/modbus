@@ -6,6 +6,7 @@ package modbus
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -142,6 +143,7 @@ type tcpTransporter struct {
 	conn         net.Conn
 	closeTimer   *time.Timer
 	lastActivity time.Time
+	Conn         net.Conn
 }
 
 // Send sends data to server and ensures response length is greater than header length.
@@ -155,7 +157,7 @@ func (mb *tcpTransporter) Send(aduRequest []byte) (aduResponse []byte, err error
 	}
 	// Set timer to close when idle
 	mb.lastActivity = time.Now()
-	mb.startCloseTimer()
+	//mb.startCloseTimer()
 	// Set write and read timeout
 	var timeout time.Time
 	if mb.Timeout > 0 {
@@ -167,9 +169,6 @@ func (mb *tcpTransporter) Send(aduRequest []byte) (aduResponse []byte, err error
 	// Send data
 	mb.logf("modbus: sending % x", aduRequest)
 	if _, err = mb.conn.Write(aduRequest); err != nil {
-		if netError, ok := err.(net.Error); ok && netError.Timeout() == false {
-                        mb.close()
-                }
 		return
 	}
 	// Read header first
@@ -206,6 +205,15 @@ func (mb *tcpTransporter) Connect() error {
 	defer mb.mu.Unlock()
 
 	return mb.connect()
+}
+func (mb *tcpTransporter) IsConnect() error {
+	mb.mu.Lock()
+	defer mb.mu.Unlock()
+
+	if mb.conn == nil {
+		return errors.New("Bad Connection")
+	}
+	return nil
 }
 
 func (mb *tcpTransporter) connect() error {

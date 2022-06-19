@@ -28,6 +28,7 @@ type Client interface {
 	// ReadHoldingRegisters reads the contents of a contiguous block of
 	// holding registers in a remote device and returns register value.
 	ReadHoldingRegisters(address, quantity uint16) (results []byte, err error)
+	ReadCustomRegisters(command string) (results []byte, err error)
 	// WriteSingleRegister writes a single holding register in a remote
 	// device and returns register value.
 	WriteSingleRegister(address, value uint16) (results []byte, err error)
@@ -48,5 +49,6 @@ type Client interface {
 	ReadFIFOQueue(address uint16) (results []byte, err error)
 
 	Connect() (err error)
+	IsConnect() (err error)
 	Close() (err error)
 }

@@ -78,6 +78,7 @@ func (e *ModbusError) Error() string {
 type ProtocolDataUnit struct {
 	FunctionCode byte
 	Data         []byte
+	CustomCode   string
 }
 
 // Packager specifies the communication layer.
@@ -91,5 +92,6 @@ type Packager interface {
 type Transporter interface {
 	Send(aduRequest []byte) (aduResponse []byte, err error)
 	Connect() (err error)
+	IsConnect() (err error)
 	Close() (err error)
 }

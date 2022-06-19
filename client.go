@@ -7,6 +7,7 @@ package modbus
 import (
 	"encoding/binary"
 	"fmt"
+	"k8s.io/klog/v2"
 )
 
 // ClientHandler is the interface that groups the Packager and Transporter methods.
@@ -120,6 +121,39 @@ func (mb *client) ReadHoldingRegisters(address, quantity uint16) (results []byte
 		return
 	}
 	results = response.Data[1:]
+	return
+}
+
+func (mb *client) ReadCustomRegisters(command string) (results []byte, err error) {
+
+	request := ProtocolDataUnit{
+		Data:         dataBlock(1, 1),
+		CustomCode:   command,
+	}
+	aduRequest, err := mb.packager.Encode(&request)
+	if err != nil {
+		return
+	}
+	aduResponse, err := mb.transporter.Send(aduRequest)
+	if err != nil {
+		return
+	}
+	if err = mb.packager.Verify(aduRequest, aduResponse); err != nil {
+		return
+	}
+	response, err := mb.packager.Decode(aduResponse)
+	if err != nil {
+		return
+	}
+	if response.Data == nil || len(response.Data) == 0 {
+		// Empty response
+		err = fmt.Errorf("modbus: response data is empty")
+		return
+	}
+	if err != nil {
+		return
+	}
+	results = response.Data
 	return
 }
 
@@ -435,6 +469,9 @@ func (mb *client) ReadFIFOQueue(address uint16) (results []byte, err error) {
 func (mb *client) Connect() (err error) {
 	return mb.transporter.Connect()
 }
+func (mb *client) IsConnect() (err error) {
+	return mb.transporter.IsConnect()
+}
 
 func (mb *client) Close() (err error) {
 	return mb.transporter.Close()
@@ -448,10 +485,12 @@ func (mb *client) send(request *ProtocolDataUnit) (response *ProtocolDataUnit, e
 	if err != nil {
 		return
 	}
+	klog.V(1).Info("Send request:", aduRequest)
 	aduResponse, err := mb.transporter.Send(aduRequest)
 	if err != nil {
 		return
 	}
+	klog.V(1).Info("Send response:", aduResponse)
 	if err = mb.packager.Verify(aduRequest, aduResponse); err != nil {
 		return
 	}

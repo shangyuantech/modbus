@@ -5,6 +5,7 @@
 package modbus
 
 import (
+	"errors"
 	"io"
 	"log"
 	"sync"
@@ -40,7 +41,15 @@ func (mb *serialPort) Connect() (err error) {
 
 	return mb.connect()
 }
+func (mb *serialPort) IsConnect() (err error) {
+	mb.mu.Lock()
+	defer mb.mu.Unlock()
 
+	if mb.port == nil {
+		return errors.New("Bad Connection")
+	}
+	return nil
+}
 // connect connects to the serial port if it is not connected. Caller must hold the mutex.
 func (mb *serialPort) connect() error {
 	if mb.port == nil {
