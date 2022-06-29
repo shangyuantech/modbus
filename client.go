@@ -17,6 +17,7 @@ type ClientHandler interface {
 }
 
 type client struct {
+	device      string
 	packager    Packager
 	transporter Transporter
 }
@@ -24,6 +25,11 @@ type client struct {
 // NewClient creates a new modbus client with given backend handler.
 func NewClient(handler ClientHandler) Client {
 	return &client{packager: handler, transporter: handler}
+}
+
+// NewClient creates a new modbus client with given backend handler.
+func NewDeviceClient(handler ClientHandler, deviceIP string) Client {
+	return &client{packager: handler, transporter: handler, device: deviceIP}
 }
 
 // NewClient2 creates a new modbus client with given backend packager and transporter.
