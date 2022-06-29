@@ -491,12 +491,12 @@ func (mb *client) send(request *ProtocolDataUnit) (response *ProtocolDataUnit, e
 	if err != nil {
 		return
 	}
-	klog.V(1).Info("Send request:", aduRequest)
+	klog.V(1).Info("Send request: %s to device: %s", aduRequest, mb.device)
 	aduResponse, err := mb.transporter.Send(aduRequest)
 	if err != nil {
 		return
 	}
-	klog.V(1).Info("Send response:", aduResponse)
+	klog.V(1).Info("Send response: %s to device: %s", aduResponse, mb.device)
 	if err = mb.packager.Verify(aduRequest, aduResponse); err != nil {
 		return
 	}
